@@ -15,6 +15,13 @@ export const emptyData: AppData = {
   exercises: [], routines: [], completed: {}, mode: 'system', accent: 'coral'
 }
 
+export function getRoutineProgress(routine: Routine, completed: AppData['completed']) {
+  const total = routine.entries.reduce((sum, entry) => sum + entry.sets, 0)
+  const done = routine.entries.reduce((sum, entry) =>
+    sum + (completed[entry.id]?.slice(0, entry.sets).filter(Boolean).length ?? 0), 0)
+  return { total, done, percent: total ? Math.round(done / total * 100) : 0, complete: total > 0 && done === total }
+}
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
 

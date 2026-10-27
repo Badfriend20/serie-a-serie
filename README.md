@@ -4,7 +4,7 @@ PWA de seguimiento de series para cualquier persona. Cada visitante configura su
 
 ## Estado
 
-MVP funcional: catálogo de ejercicios, varias rutinas, número de series por ejercicio, reordenación, marcas persistentes, reinicio manual, tema claro/oscuro/sistema y acento configurable, respaldo JSON, instalación PWA y trabajo sin conexión después de la primera visita.
+MVP funcional: catálogo de ejercicios, varias rutinas seleccionables, una rutina desplegada a la vez, porcentaje y barra de avance, estado de completado, número de series por ejercicio, reordenación, marcas persistentes, reinicio manual, tema claro/oscuro/sistema y acento configurable, respaldo JSON, instalación PWA y trabajo sin conexión después de la primera visita.
 
 Consulta [docs/PRODUCTO.md](docs/PRODUCTO.md) para alcance, modelo, decisiones y siguientes ideas.
 
@@ -47,9 +47,9 @@ No se necesita backend, secretos ni cuenta. La URL de Pages debe ser pública pa
 ```text
 src/
   components/
-    atoms/       Button, TextField, Surface
+    atoms/       Button, TextField, Surface, ProgressBar
     molecules/   SetTracker
-    organisms/   RoutineCard
+    organisms/   RoutineCard, RoutinePicker
     layout/      AppShell
   pages/         RoutinesPage, ExercisesPage, SettingsPage
   model.ts       Tipos y validación de respaldos

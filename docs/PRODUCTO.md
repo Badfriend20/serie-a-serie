@@ -17,7 +17,7 @@ Marcar series de entrenamiento sin fricción. La app no prescribe ejercicio, pes
 
 1. Crear ejercicios en el catálogo.
 2. Crear una rutina y agregar ejercicios del catálogo, con tres series iniciales ajustables entre una y veinte.
-3. Marcar o desmarcar cada serie con un toque. Cerrar y abrir la app conserva las marcas.
+3. Elegir una rutina del selector visible, desplegarla o plegarla y marcar o desmarcar cada serie con un toque. Cerrar y abrir la app conserva las marcas.
 4. Al iniciar otra sesión, reiniciar las marcas de esa rutina mediante confirmación. Las demás rutinas conservan sus marcas.
 
 La app no reinicia automáticamente al cambiar de día: un entrenamiento puede cruzar la medianoche y la persona controla cuándo termina. No hay historial de sesiones en el MVP.
@@ -33,9 +33,9 @@ La app no reinicia automáticamente al cambiar de día: un entrenamiento puede c
 
 ## Interfaz
 
-Tres secciones: Rutinas, Ejercicios y Ajustes. Vista móvil prioritaria, controles táctiles de 44 px aproximadamente, estados visibles para cada serie, etiquetas accesibles, navegación por teclado y confirmación antes de borrar o reiniciar. La edición de cada rutina se abre en su tarjeta. Una rutina vacía explica cómo comenzar.
+Tres secciones: Rutinas, Ejercicios y Ajustes. En Rutinas, el selector permanece visible al desplazarse y tiene altura limitada si hay muchas; solo una rutina se despliega a la vez y tocarla de nuevo la pliega. El selector y el detalle muestran porcentaje y cantidad de series completadas. El detalle muestra barra de avance, marca por ejercicio y mensaje al completar toda la rutina. Vista móvil prioritaria, controles táctiles de 44 px aproximadamente, estados visibles para cada serie, etiquetas accesibles, navegación por teclado y confirmación antes de borrar o reiniciar. La edición de cada rutina se abre en su tarjeta. Una rutina vacía explica cómo comenzar.
 
-Tema: sistema, claro u oscuro; acento coral, menta o violeta. Los colores y estados parten de tokens en `ThemeProvider`; `Button` usa variantes y tamaño mediante propiedades transitorias, `SetTracker` usa una propiedad booleana para el estado. No se crean componentes nuevos para variaciones menores.
+Tema: sistema, claro u oscuro; acento coral, menta o violeta. El fondo de toda la pantalla cambia con el modo y el acento, y los textos, bordes, controles y estados de completado mantienen contraste legible. Los colores y estados parten de tokens en `ThemeProvider`; `Button` usa variantes y tamaño mediante propiedades transitorias, `SetTracker` usa una propiedad booleana para el estado. No se crean componentes nuevos para variaciones menores.
 
 ## Arquitectura
 
@@ -58,6 +58,8 @@ No hay cuenta, backend, analítica ni sincronización. Compartir el enlace no co
 ## Criterios de aceptación
 
 - Una instalación nueva abre sin rutinas personales.
+- El selector de rutinas queda accesible durante el desplazamiento; plegar una rutina no borra marcas y cambiar de rutina muestra solo la elegida.
+- El porcentaje es cero para rutinas vacías; el mensaje de completado aparece únicamente cuando todas sus series están marcadas.
 - Al crear dos rutinas con el mismo ejercicio, sus cantidades de series y marcas son independientes.
 - Recargar y cerrar/abrir conserva marcas y tema.
 - Reiniciar una rutina no cambia la otra.

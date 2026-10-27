@@ -4,19 +4,24 @@ import { useAppStore } from '../store'
 import { Button } from '../components/atoms/Button'
 import { TextField } from '../components/atoms/TextField'
 import { RoutineCard } from '../components/organisms/RoutineCard'
+import { RoutinePicker } from '../components/organisms/RoutinePicker'
 
-const Stack = styled.div`display:grid; gap:1rem;`
+const Stack = styled.div`display:grid; gap:1rem; align-content:start;`
 const Form = styled.form`display:flex; gap:.6rem; flex-wrap:wrap; > input { flex:1 1 230px; }`
 const Note = styled.p`color:${({ theme }) => theme.muted}; margin:0;`
 
 export function RoutinesPage() {
   const [name, setName] = useState('')
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   const routines = useAppStore(state => state.routines)
   const addRoutine = useAppStore(state => state.addRoutine)
+  const activeId = selectedId === '' ? '' : routines.some(routine => routine.id === selectedId)
+    ? selectedId! : routines[0]?.id ?? ''
   const submit = (event: FormEvent) => {
     event.preventDefault()
     if (!name.trim()) return
     addRoutine(name.trim())
+    setSelectedId(null)
     setName('')
   }
   return (
@@ -26,7 +31,10 @@ export function RoutinesPage() {
         <TextField aria-label="Nombre de la nueva rutina" placeholder="Nueva rutina, por ejemplo, Día A" maxLength={80} value={name} onChange={event => setName(event.target.value)} />
         <Button type="submit" variant="primary" disabled={!name.trim() || routines.length >= 100}>Crear rutina</Button>
       </Form>
-      {routines.length ? routines.map(routine => <RoutineCard key={routine.id} id={routine.id} />) : <Note>Crea una rutina y agrega ejercicios desde el catálogo.</Note>}
+      {routines.length ? <>
+        <RoutinePicker activeId={activeId} onSelect={id => setSelectedId(activeId === id ? '' : id)} />
+        {activeId ? <RoutineCard key={activeId} id={activeId} /> : <Note>Elige una rutina para ver sus series.</Note>}
+      </> : <Note>Crea una rutina y agrega ejercicios desde el catálogo.</Note>}
     </Stack>
   )
 }
