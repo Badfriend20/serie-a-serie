@@ -16,7 +16,8 @@ type AppStore = AppData & {
   setCount: (routineId: string, entryId: string, count: number) => void
   toggleSet: (entryId: string, index: number) => void
   setWeightKg: (entryId: string, weight: number | null) => void
-  resetRoutine: (routineId: string) => void
+  resetRoutineMarks: (routineId: string) => void
+  resetRoutineWeights: (routineId: string) => void
   setMode: (mode: ThemeMode) => void
   setAccent: (accent: Accent) => void
   importData: (data: AppData) => void
@@ -100,14 +101,19 @@ export const useAppStore = create<AppStore>()(persist((set) => ({
     else weightsKg[entryId] = weight
     return { weightsKg }
   }),
-  resetRoutine: routineId => set(state => {
+  resetRoutineMarks: routineId => set(state => {
     const completed = { ...state.completed }
-    const weightsKg = { ...state.weightsKg }
     state.routines.find(routine => routine.id === routineId)?.entries.forEach(entry => {
       delete completed[entry.id]
+    })
+    return { completed }
+  }),
+  resetRoutineWeights: routineId => set(state => {
+    const weightsKg = { ...state.weightsKg }
+    state.routines.find(routine => routine.id === routineId)?.entries.forEach(entry => {
       delete weightsKg[entry.id]
     })
-    return { completed, weightsKg }
+    return { weightsKg }
   }),
   setMode: mode => set({ mode }),
   setAccent: accent => set({ accent }),

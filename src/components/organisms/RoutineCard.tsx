@@ -21,8 +21,10 @@ export function RoutineCard({ id }: { id: string }) {
   const routine = routines.find(item => item.id === id)
   const completed = useAppStore(state => state.completed)
   const weightsKg = useAppStore(state => state.weightsKg)
-  const resetRoutine = useAppStore(state => state.resetRoutine)
+  const resetRoutineMarks = useAppStore(state => state.resetRoutineMarks)
+  const resetRoutineWeights = useAppStore(state => state.resetRoutineWeights)
   const { total, done, percent, complete } = routine ? getRoutineProgress(routine, completed) : { total: 0, done: 0, percent: 0, complete: false }
+  const hasWeights = routine?.entries.some(entry => weightsKg[entry.id] !== undefined) ?? false
   return (
     <Surface id={`routine-${id}`} aria-label={routine?.name}>
       <Header>
@@ -36,9 +38,14 @@ export function RoutineCard({ id }: { id: string }) {
           <SetTracker entry={entry} index={index + 1} />
         </Item>
       ))}</Items> : <Muted>Sin ejercicios. Agrégalos en la pestaña Rutinas.</Muted>}
-      <Actions><Button size="small" variant="quiet" disabled={done === 0 && !routine?.entries.some(entry => weightsKg[entry.id] !== undefined)} onClick={() => {
-        if (window.confirm('¿Reiniciar las marcas y pesos de esta rutina?')) resetRoutine(id)
-      }}><span aria-hidden="true">↻</span> Reiniciar marcas y pesos</Button></Actions>
+      <Actions>
+        <Button size="small" variant="quiet" disabled={done === 0} onClick={() => {
+          if (window.confirm('¿Reiniciar las series completadas de esta rutina? Los pesos se conservarán.')) resetRoutineMarks(id)
+        }}><span aria-hidden="true">↻</span> Reiniciar series</Button>
+        <Button size="small" variant="quiet" disabled={!hasWeights} onClick={() => {
+          if (window.confirm('¿Borrar los pesos de los ejercicios de esta rutina? Las series completadas se conservarán.')) resetRoutineWeights(id)
+        }}><span aria-hidden="true">⌫</span> Borrar pesos</Button>
+      </Actions>
     </Surface>
   )
 }
