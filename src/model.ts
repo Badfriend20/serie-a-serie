@@ -7,7 +7,7 @@ export type AppData = {
   exercises: Exercise[]
   routines: Routine[]
   completed: Record<string, boolean[]>
-  weightsKg: Record<string, (number | null)[]>
+  weightsKg: Record<string, number>
   mode: ThemeMode
   accent: Accent
 }
@@ -25,6 +25,19 @@ export function getRoutineProgress(routine: Routine, completed: AppData['complet
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
+
+const validWeight = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 10000
+
+export function migrateWeights(weights: unknown): AppData['weightsKg'] {
+  if (!isRecord(weights)) return {}
+  const result: AppData['weightsKg'] = {}
+  for (const [entryId, value] of Object.entries(weights)) {
+    const latest = Array.isArray(value) ? [...value].reverse().find(validWeight) : value
+    if (validWeight(latest)) result[entryId] = latest
+  }
+  return result
+}
 
 export function parseBackup(input: unknown): AppData {
   if (!isRecord(input) || input.version !== 1 || !isRecord(input.data)) {
@@ -80,11 +93,12 @@ export function parseBackup(input: unknown): AppData {
   if (data.weightsKg !== undefined && !isRecord(data.weightsKg)) throw new Error('Hay pesos inválidos en el respaldo.')
   for (const [key, value] of Object.entries(data.weightsKg ?? {})) {
     const entry = entriesById.get(key)
-    if (!entry || !Array.isArray(value) || value.length !== entry.sets ||
-        !value.every(item => item === null || (typeof item === 'number' && Number.isFinite(item) && item >= 0 && item <= 10000))) {
+    if (!entry || !(validWeight(value) || (Array.isArray(value) && value.length === entry.sets &&
+        value.every(item => item === null || validWeight(item))))) {
       throw new Error('Hay pesos inválidos en el respaldo.')
     }
-    weightsKg[key] = value as (number | null)[]
+    const latest = Array.isArray(value) ? [...value].reverse().find(validWeight) : value
+    if (validWeight(latest)) weightsKg[key] = latest
   }
   return { exercises, routines, completed, weightsKg, mode: data.mode as ThemeMode, accent: data.accent as Accent }
 }

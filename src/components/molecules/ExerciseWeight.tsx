@@ -9,22 +9,22 @@ const Input = styled.input`width:76px; min-height:40px; padding:.35rem .45rem; b
 
 const display = (value: number | null) => value === null ? '' : String(Math.round(value * 100) / 100)
 
-export function SetWeight({ entryId, index, exerciseName }: { entryId: string; index: number; exerciseName: string }) {
-  const weight = useAppStore(state => state.weightsKg[entryId]?.[index] ?? null)
+export function ExerciseWeight({ entryId, exerciseName }: { entryId: string; exerciseName: string }) {
+  const weight = useAppStore(state => state.weightsKg[entryId] ?? null)
   const setWeightKg = useAppStore(state => state.setWeightKg)
   const [editing, setEditing] = useState<{ unit: 'kg' | 'lb'; value: string } | null>(null)
   const change = (unit: 'kg' | 'lb', value: string) => {
     setEditing({ unit, value })
-    if (value === '') { setWeightKg(entryId, index, null); return }
+    if (value === '') { setWeightKg(entryId, null); return }
     const number = Number(value)
-    if (Number.isFinite(number) && number >= 0) setWeightKg(entryId, index, unit === 'kg' ? number : number * KG_PER_LB)
+    if (Number.isFinite(number) && number >= 0) setWeightKg(entryId, unit === 'kg' ? number : number * KG_PER_LB)
   }
   return (
-    <Fields aria-label={`Peso opcional de ${exerciseName}, serie ${index + 1}`}>
-      <Field>kg<Input type="number" min="0" max="10000" step="any" inputMode="decimal" placeholder="—" aria-label={`${exerciseName}, serie ${index + 1}, kilogramos`}
+    <Fields aria-label={`Peso opcional de ${exerciseName}`}>
+      <Field>kg<Input type="number" min="0" max="10000" step="any" inputMode="decimal" placeholder="—" aria-label={`${exerciseName}, kilogramos`}
         value={editing?.unit === 'kg' ? editing.value : display(weight)}
         onChange={event => change('kg', event.target.value)} onBlur={() => setEditing(null)} /></Field>
-      <Field>lb<Input type="number" min="0" max="22046.23" step="any" inputMode="decimal" placeholder="—" aria-label={`${exerciseName}, serie ${index + 1}, libras`}
+      <Field>lb<Input type="number" min="0" max="22046.23" step="any" inputMode="decimal" placeholder="—" aria-label={`${exerciseName}, libras`}
         value={editing?.unit === 'lb' ? editing.value : display(weight === null ? null : weight / KG_PER_LB)}
         onChange={event => change('lb', event.target.value)} onBlur={() => setEditing(null)} /></Field>
     </Fields>

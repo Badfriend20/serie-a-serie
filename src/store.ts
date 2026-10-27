@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { emptyData, type Accent, type AppData, type ThemeMode } from './model'
+import { emptyData, migrateWeights, type Accent, type AppData, type ThemeMode } from './model'
 
 type AppStore = AppData & {
   addExercise: (name: string) => void
@@ -15,7 +15,7 @@ type AppStore = AppData & {
   moveEntry: (routineId: string, entryId: string, direction: -1 | 1) => void
   setCount: (routineId: string, entryId: string, count: number) => void
   toggleSet: (entryId: string, index: number) => void
-  setWeightKg: (entryId: string, index: number, weight: number | null) => void
+  setWeightKg: (entryId: string, weight: number | null) => void
   resetRoutine: (routineId: string) => void
   setMode: (mode: ThemeMode) => void
   setAccent: (accent: Accent) => void
@@ -82,8 +82,7 @@ export const useAppStore = create<AppStore>()(persist((set) => ({
   setCount: (routineId, entryId, count) => set(state => ({
     routines: state.routines.map(routine => routine.id === routineId ? { ...routine,
       entries: routine.entries.map(entry => entry.id === entryId ? { ...entry, sets: count } : entry) } : routine),
-    completed: { ...state.completed, [entryId]: Array.from({ length: count }, (_, index) => state.completed[entryId]?.[index] ?? false) },
-    weightsKg: { ...state.weightsKg, [entryId]: Array.from({ length: count }, (_, index) => state.weightsKg[entryId]?.[index] ?? null) }
+    completed: { ...state.completed, [entryId]: Array.from({ length: count }, (_, index) => state.completed[entryId]?.[index] ?? false) }
   })),
   toggleSet: (entryId, index) => set(state => {
     const entry = state.routines.flatMap(routine => routine.entries).find(item => item.id === entryId)
@@ -92,13 +91,14 @@ export const useAppStore = create<AppStore>()(persist((set) => ({
     marks[index] = !marks[index]
     return { completed: { ...state.completed, [entryId]: marks } }
   }),
-  setWeightKg: (entryId, index, weight) => set(state => {
+  setWeightKg: (entryId, weight) => set(state => {
     const entry = state.routines.flatMap(routine => routine.entries).find(item => item.id === entryId)
-    if (!entry || index < 0 || index >= entry.sets || (weight !== null &&
+    if (!entry || (weight !== null &&
         (!Number.isFinite(weight) || weight < 0 || weight > 10000))) return state
-    const weights = Array.from({ length: entry.sets }, (_, n) => state.weightsKg[entryId]?.[n] ?? null)
-    weights[index] = weight
-    return { weightsKg: { ...state.weightsKg, [entryId]: weights } }
+    const weightsKg = { ...state.weightsKg }
+    if (weight === null) delete weightsKg[entryId]
+    else weightsKg[entryId] = weight
+    return { weightsKg }
   }),
   resetRoutine: routineId => set(state => {
     const completed = { ...state.completed }
@@ -112,7 +112,11 @@ export const useAppStore = create<AppStore>()(persist((set) => ({
   setMode: mode => set({ mode }),
   setAccent: accent => set({ accent }),
   importData: data => set(data)
-}), { name: 'serie-a-serie:v1', version: 1,
+}), { name: 'serie-a-serie:v1', version: 2,
+  migrate: persisted => {
+    const previous = persisted as Partial<AppData>
+    return { ...previous, weightsKg: migrateWeights(previous.weightsKg) } as AppStore
+  },
   partialize: state => ({ exercises: state.exercises, routines: state.routines, completed: state.completed, weightsKg: state.weightsKg,
     mode: state.mode, accent: state.accent })
 }))

@@ -36,7 +36,7 @@ export function RoutineCard({ id }: { id: string }) {
           <SetTracker entry={entry} index={index + 1} />
         </Item>
       ))}</Items> : <Muted>Sin ejercicios. Agrégalos en la pestaña Rutinas.</Muted>}
-      <Actions><Button size="small" variant="quiet" disabled={done === 0 && !routine?.entries.some(entry => weightsKg[entry.id]?.some(weight => weight !== null))} onClick={() => {
+      <Actions><Button size="small" variant="quiet" disabled={done === 0 && !routine?.entries.some(entry => weightsKg[entry.id] !== undefined)} onClick={() => {
         if (window.confirm('¿Reiniciar las marcas y pesos de esta rutina?')) resetRoutine(id)
       }}><span aria-hidden="true">↻</span> Reiniciar marcas y pesos</Button></Actions>
     </Surface>
