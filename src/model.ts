@@ -1,0 +1,71 @@
+export type ThemeMode = 'system' | 'light' | 'dark'
+export type Accent = 'coral' | 'mint' | 'violet'
+export type Exercise = { id: string; name: string }
+export type RoutineEntry = { id: string; exerciseId: string; sets: number }
+export type Routine = { id: string; name: string; entries: RoutineEntry[] }
+export type AppData = {
+  exercises: Exercise[]
+  routines: Routine[]
+  completed: Record<string, boolean[]>
+  mode: ThemeMode
+  accent: Accent
+}
+
+export const emptyData: AppData = {
+  exercises: [], routines: [], completed: {}, mode: 'system', accent: 'coral'
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+export function parseBackup(input: unknown): AppData {
+  if (!isRecord(input) || input.version !== 1 || !isRecord(input.data)) {
+    throw new Error('El archivo no tiene el formato de respaldo compatible.')
+  }
+  const data = input.data
+  if (!Array.isArray(data.exercises) || !Array.isArray(data.routines) || !isRecord(data.completed) ||
+      !['system', 'light', 'dark'].includes(String(data.mode)) ||
+      !['coral', 'mint', 'violet'].includes(String(data.accent)) ||
+      data.exercises.length > 500 || data.routines.length > 100) {
+    throw new Error('Los datos del respaldo son inválidos o demasiado grandes.')
+  }
+  const exercises = data.exercises.map((value: unknown) => {
+    if (!isRecord(value) || typeof value.id !== 'string' || !value.id ||
+        typeof value.name !== 'string' || !value.name.trim() || value.name.length > 80) {
+      throw new Error('Hay ejercicios inválidos en el respaldo.')
+    }
+    return { id: value.id, name: value.name.trim() }
+  })
+  const exerciseIds = new Set(exercises.map(value => value.id))
+  if (exerciseIds.size !== exercises.length) throw new Error('Hay ejercicios duplicados.')
+  const entryIds = new Set<string>()
+  const routines = data.routines.map((value: unknown) => {
+    if (!isRecord(value) || typeof value.id !== 'string' || !value.id ||
+        typeof value.name !== 'string' || !value.name.trim() || value.name.length > 80 ||
+        !Array.isArray(value.entries) || value.entries.length > 500) {
+      throw new Error('Hay rutinas inválidas en el respaldo.')
+    }
+    const entries = value.entries.map((item: unknown) => {
+      if (!isRecord(item) || typeof item.id !== 'string' || !item.id ||
+          typeof item.exerciseId !== 'string' || !exerciseIds.has(item.exerciseId) ||
+          !Number.isInteger(item.sets) || (item.sets as number) < 1 || (item.sets as number) > 20 ||
+          entryIds.has(item.id)) {
+        throw new Error('Hay series o referencias inválidas en el respaldo.')
+      }
+      entryIds.add(item.id)
+      return { id: item.id, exerciseId: item.exerciseId, sets: item.sets as number }
+    })
+    return { id: value.id, name: value.name.trim(), entries }
+  })
+  if (new Set(routines.map(value => value.id)).size !== routines.length) throw new Error('Hay rutinas duplicadas.')
+  const completed: Record<string, boolean[]> = {}
+  for (const [key, value] of Object.entries(data.completed)) {
+    const entry = routines.flatMap(routine => routine.entries).find(item => item.id === key)
+    if (!entry || !Array.isArray(value) || value.length !== entry.sets ||
+        !value.every(item => typeof item === 'boolean')) {
+      throw new Error('Hay marcas de series inválidas en el respaldo.')
+    }
+    completed[key] = value as boolean[]
+  }
+  return { exercises, routines, completed, mode: data.mode as ThemeMode, accent: data.accent as Accent }
+}
