@@ -10,8 +10,6 @@ const Number = styled.span`
 `
 const Name = styled.strong`flex:1; min-width:0; overflow-wrap:anywhere;`
 const Complete = styled.span`color:${({ theme }) => theme.success}; font-weight:900; font-size:1.15rem;`
-const Weight = styled.div`display:flex; align-items:center; flex-wrap:wrap; gap:.4rem 1rem; margin-top:.85rem; padding-top:.7rem; border-top:1px solid ${({ theme }) => theme.border};`
-const WeightLabel = styled.span`color:${({ theme }) => theme.muted}; font-size:.85rem; font-weight:650;`
 const Grid = styled.div`display:flex; flex-wrap:wrap; gap:.45rem .35rem; margin-top:.9rem;`
 const SetButton = styled.button<{ $done: boolean }>`
   display:inline-flex; flex:0 0 calc((100% - .7rem) / 3); min-width:0;
@@ -51,7 +49,7 @@ export function SetTracker({ entry, index }: { entry: RoutineEntry; index: numbe
           </SetButton>
         ))}
       </Grid>
-      <Weight><WeightLabel>Peso (opcional)</WeightLabel><ExerciseWeight entryId={entry.id} exerciseName={name ?? 'ejercicio'} /></Weight>
+      <ExerciseWeight entryId={entry.id} exerciseName={name ?? 'ejercicio'} />
     </div>
   )
 }
