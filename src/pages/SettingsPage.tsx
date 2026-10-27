@@ -19,8 +19,8 @@ export function SettingsPage() {
   const setAccent = useAppStore(state => state.setAccent)
   const importData = useAppStore(state => state.importData)
   const download = () => {
-    const { exercises, routines, completed, mode, accent } = useAppStore.getState()
-    const url = URL.createObjectURL(new Blob([JSON.stringify({ version: 1, data: { exercises, routines, completed, mode, accent } }, null, 2)], { type: 'application/json' }))
+    const { exercises, routines, completed, weightsKg, mode, accent } = useAppStore.getState()
+    const url = URL.createObjectURL(new Blob([JSON.stringify({ version: 1, data: { exercises, routines, completed, weightsKg, mode, accent } }, null, 2)], { type: 'application/json' }))
     const link = document.createElement('a')
     link.href = url
     link.download = 'serie-a-serie-respaldo.json'

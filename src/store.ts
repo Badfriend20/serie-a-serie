@@ -10,10 +10,12 @@ type AppStore = AppData & {
   renameRoutine: (id: string, name: string) => void
   removeRoutine: (id: string) => void
   addEntry: (routineId: string, exerciseId: string) => void
+  createExerciseInRoutine: (routineId: string, name: string) => void
   removeEntry: (routineId: string, entryId: string) => void
   moveEntry: (routineId: string, entryId: string, direction: -1 | 1) => void
   setCount: (routineId: string, entryId: string, count: number) => void
   toggleSet: (entryId: string, index: number) => void
+  setWeightKg: (entryId: string, index: number, weight: number | null) => void
   resetRoutine: (routineId: string) => void
   setMode: (mode: ThemeMode) => void
   setAccent: (accent: Accent) => void
@@ -33,7 +35,8 @@ export const useAppStore = create<AppStore>()(persist((set) => ({
     const retained = new Set(routines.flatMap(routine => routine.entries.map(entry => entry.id)))
     return {
       exercises: state.exercises.filter(exercise => exercise.id !== exerciseId), routines,
-      completed: Object.fromEntries(Object.entries(state.completed).filter(([key]) => retained.has(key)))
+      completed: Object.fromEntries(Object.entries(state.completed).filter(([key]) => retained.has(key))),
+      weightsKg: Object.fromEntries(Object.entries(state.weightsKg).filter(([key]) => retained.has(key)))
     }
   }),
   addRoutine: name => set(state => state.routines.length >= 100 ? state :
@@ -44,15 +47,27 @@ export const useAppStore = create<AppStore>()(persist((set) => ({
     const removed = state.routines.find(routine => routine.id === routineId)
     const ids = new Set(removed?.entries.map(entry => entry.id) ?? [])
     return { routines: state.routines.filter(routine => routine.id !== routineId),
-      completed: Object.fromEntries(Object.entries(state.completed).filter(([key]) => !ids.has(key))) }
+      completed: Object.fromEntries(Object.entries(state.completed).filter(([key]) => !ids.has(key))),
+      weightsKg: Object.fromEntries(Object.entries(state.weightsKg).filter(([key]) => !ids.has(key))) }
   }),
   addEntry: (routineId, exerciseId) => set(state => ({ routines: state.routines.map(routine =>
     routine.id === routineId && routine.entries.length < 500 && state.exercises.some(exercise => exercise.id === exerciseId)
       ? { ...routine, entries: [...routine.entries, { id: id(), exerciseId, sets: 3 }] } : routine) })),
+  createExerciseInRoutine: (routineId, name) => set(state => {
+    const trimmed = name.trim()
+    if (!trimmed || trimmed.length > 80 || state.exercises.length >= 500 ||
+        !state.routines.some(routine => routine.id === routineId && routine.entries.length < 500)) return state
+    const exerciseId = id()
+    return { exercises: [...state.exercises, { id: exerciseId, name: trimmed }],
+      routines: state.routines.map(routine => routine.id === routineId ? { ...routine,
+        entries: [...routine.entries, { id: id(), exerciseId, sets: 3 }] } : routine) }
+  }),
   removeEntry: (routineId, entryId) => set(state => {
     const completed = { ...state.completed }
+    const weightsKg = { ...state.weightsKg }
     delete completed[entryId]
-    return { completed, routines: state.routines.map(routine => routine.id === routineId ?
+    delete weightsKg[entryId]
+    return { completed, weightsKg, routines: state.routines.map(routine => routine.id === routineId ?
       { ...routine, entries: routine.entries.filter(entry => entry.id !== entryId) } : routine) }
   }),
   moveEntry: (routineId, entryId, direction) => set(state => ({ routines: state.routines.map(routine => {
@@ -67,7 +82,8 @@ export const useAppStore = create<AppStore>()(persist((set) => ({
   setCount: (routineId, entryId, count) => set(state => ({
     routines: state.routines.map(routine => routine.id === routineId ? { ...routine,
       entries: routine.entries.map(entry => entry.id === entryId ? { ...entry, sets: count } : entry) } : routine),
-    completed: { ...state.completed, [entryId]: Array.from({ length: count }, (_, index) => state.completed[entryId]?.[index] ?? false) }
+    completed: { ...state.completed, [entryId]: Array.from({ length: count }, (_, index) => state.completed[entryId]?.[index] ?? false) },
+    weightsKg: { ...state.weightsKg, [entryId]: Array.from({ length: count }, (_, index) => state.weightsKg[entryId]?.[index] ?? null) }
   })),
   toggleSet: (entryId, index) => set(state => {
     const entry = state.routines.flatMap(routine => routine.entries).find(item => item.id === entryId)
@@ -76,15 +92,27 @@ export const useAppStore = create<AppStore>()(persist((set) => ({
     marks[index] = !marks[index]
     return { completed: { ...state.completed, [entryId]: marks } }
   }),
+  setWeightKg: (entryId, index, weight) => set(state => {
+    const entry = state.routines.flatMap(routine => routine.entries).find(item => item.id === entryId)
+    if (!entry || index < 0 || index >= entry.sets || (weight !== null &&
+        (!Number.isFinite(weight) || weight < 0 || weight > 10000))) return state
+    const weights = Array.from({ length: entry.sets }, (_, n) => state.weightsKg[entryId]?.[n] ?? null)
+    weights[index] = weight
+    return { weightsKg: { ...state.weightsKg, [entryId]: weights } }
+  }),
   resetRoutine: routineId => set(state => {
     const completed = { ...state.completed }
-    state.routines.find(routine => routine.id === routineId)?.entries.forEach(entry => { delete completed[entry.id] })
-    return { completed }
+    const weightsKg = { ...state.weightsKg }
+    state.routines.find(routine => routine.id === routineId)?.entries.forEach(entry => {
+      delete completed[entry.id]
+      delete weightsKg[entry.id]
+    })
+    return { completed, weightsKg }
   }),
   setMode: mode => set({ mode }),
   setAccent: accent => set({ accent }),
   importData: data => set(data)
 }), { name: 'serie-a-serie:v1', version: 1,
-  partialize: state => ({ exercises: state.exercises, routines: state.routines, completed: state.completed,
+  partialize: state => ({ exercises: state.exercises, routines: state.routines, completed: state.completed, weightsKg: state.weightsKg,
     mode: state.mode, accent: state.accent })
 }))

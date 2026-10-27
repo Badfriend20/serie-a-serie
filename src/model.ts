@@ -7,12 +7,13 @@ export type AppData = {
   exercises: Exercise[]
   routines: Routine[]
   completed: Record<string, boolean[]>
+  weightsKg: Record<string, (number | null)[]>
   mode: ThemeMode
   accent: Accent
 }
 
 export const emptyData: AppData = {
-  exercises: [], routines: [], completed: {}, mode: 'system', accent: 'coral'
+  exercises: [], routines: [], completed: {}, weightsKg: {}, mode: 'system', accent: 'coral'
 }
 
 export function getRoutineProgress(routine: Routine, completed: AppData['completed']) {
@@ -66,13 +67,24 @@ export function parseBackup(input: unknown): AppData {
   })
   if (new Set(routines.map(value => value.id)).size !== routines.length) throw new Error('Hay rutinas duplicadas.')
   const completed: Record<string, boolean[]> = {}
+  const entriesById = new Map(routines.flatMap(routine => routine.entries).map(entry => [entry.id, entry]))
   for (const [key, value] of Object.entries(data.completed)) {
-    const entry = routines.flatMap(routine => routine.entries).find(item => item.id === key)
+    const entry = entriesById.get(key)
     if (!entry || !Array.isArray(value) || value.length !== entry.sets ||
         !value.every(item => typeof item === 'boolean')) {
       throw new Error('Hay marcas de series inválidas en el respaldo.')
     }
     completed[key] = value as boolean[]
   }
-  return { exercises, routines, completed, mode: data.mode as ThemeMode, accent: data.accent as Accent }
+  const weightsKg: AppData['weightsKg'] = {}
+  if (data.weightsKg !== undefined && !isRecord(data.weightsKg)) throw new Error('Hay pesos inválidos en el respaldo.')
+  for (const [key, value] of Object.entries(data.weightsKg ?? {})) {
+    const entry = entriesById.get(key)
+    if (!entry || !Array.isArray(value) || value.length !== entry.sets ||
+        !value.every(item => item === null || (typeof item === 'number' && Number.isFinite(item) && item >= 0 && item <= 10000))) {
+      throw new Error('Hay pesos inválidos en el respaldo.')
+    }
+    weightsKg[key] = value as (number | null)[]
+  }
+  return { exercises, routines, completed, weightsKg, mode: data.mode as ThemeMode, accent: data.accent as Accent }
 }

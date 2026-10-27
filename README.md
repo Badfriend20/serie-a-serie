@@ -4,7 +4,7 @@ PWA de seguimiento de series para cualquier persona. Cada visitante configura su
 
 ## Estado
 
-MVP funcional: catálogo de ejercicios, varias rutinas seleccionables, una rutina desplegada a la vez, porcentaje y barra de avance, estado de completado, número de series por ejercicio, reordenación, marcas persistentes, reinicio manual, tema claro/oscuro/sistema y acento configurable, respaldo JSON, instalación PWA y trabajo sin conexión después de la primera visita.
+MVP funcional: pestaña Entrenar dedicada al seguimiento, pestaña Rutinas para crear y editar, catálogo reutilizable con creación directa desde una rutina, varias rutinas seleccionables, una rutina desplegada a la vez, porcentaje y barra de avance, estado de completado, número de series por ejercicio, reordenación, marcas y pesos opcionales por serie en kg/lb persistentes, reinicio manual, tema claro/oscuro/sistema y acento configurable, respaldo JSON, instalación PWA y trabajo sin conexión después de la primera visita.
 
 Consulta [docs/PRODUCTO.md](docs/PRODUCTO.md) para alcance, modelo, decisiones y siguientes ideas.
 
@@ -40,7 +40,7 @@ No se necesita backend, secretos ni cuenta. La URL de Pages debe ser pública pa
 
 ## Datos
 
-`localStorage` conserva los datos bajo `serie-a-serie:v1`. Borrar datos del sitio, usar otro navegador o dispositivo, o navegar en modo privado cambia el conjunto de rutinas disponible. Exporta un respaldo desde Ajustes antes de borrar datos; importarlo reemplaza todos los datos actuales tras una confirmación. No se envían rutinas a un servidor.
+`localStorage` conserva los datos bajo `serie-a-serie:v1`. Los pesos se guardan internamente en kg; los dos campos por serie convierten automáticamente entre kg y lb. Borrar datos del sitio, usar otro navegador o dispositivo, o navegar en modo privado cambia el conjunto de rutinas disponible. Exporta un respaldo desde Ajustes antes de borrar datos; importarlo reemplaza todos los datos actuales tras una confirmación. Los respaldos anteriores sin pesos se aceptan. No se envían rutinas a un servidor.
 
 ## Estructura
 
@@ -48,10 +48,10 @@ No se necesita backend, secretos ni cuenta. La URL de Pages debe ser pública pa
 src/
   components/
     atoms/       Button, TextField, Surface, ProgressBar
-    molecules/   SetTracker
-    organisms/   RoutineCard, RoutinePicker
+    molecules/   SetTracker, SetWeight
+    organisms/   RoutineCard, RoutinePicker, RoutineEditor
     layout/      AppShell
-  pages/         RoutinesPage, ExercisesPage, SettingsPage
+  pages/         TrainingPage, RoutinesPage, ExercisesPage, SettingsPage
   model.ts       Tipos y validación de respaldos
   store.ts       Acciones y persistencia local
   theme.ts       Tokens y estilos globales

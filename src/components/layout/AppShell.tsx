@@ -3,10 +3,11 @@ import styled from 'styled-components'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { Button } from '../atoms/Button'
 import { RoutinesPage } from '../../pages/RoutinesPage'
+import { TrainingPage } from '../../pages/TrainingPage'
 import { ExercisesPage } from '../../pages/ExercisesPage'
 import { SettingsPage } from '../../pages/SettingsPage'
 
-type Page = 'routines' | 'exercises' | 'settings'
+type Page = 'training' | 'routines' | 'exercises' | 'settings'
 const Frame = styled.div`max-width:760px; padding:1.1rem 1rem 5rem; margin:auto;`
 const Header = styled.header`padding:1.25rem .3rem; display:flex; align-items:center; gap:.75rem;`
 const Logo = styled.div`width:42px; height:42px; display:grid; place-items:center; background:${({ theme }) => theme.accent}; color:${({ theme }) => theme.onAccent}; border-radius:13px; font-weight:900;`
@@ -16,16 +17,16 @@ const Tab = styled.button<{ $active: boolean }>`flex:1; padding:.7rem .35rem; bo
 const Toast = styled.div`position:fixed; z-index:3; bottom:1rem; left:50%; transform:translateX(-50%); width:min(95%,500px); padding:1rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; background:${({ theme }) => theme.surface}; color:${({ theme }) => theme.text}; border:1px solid ${({ theme }) => theme.border}; border-radius:15px; box-shadow:0 12px 35px #0003;`
 
 export function AppShell() {
-  const [page, setPage] = useState<Page>('routines')
+  const [page, setPage] = useState<Page>('training')
   const { needRefresh: [needRefresh, setNeedRefresh], offlineReady: [offlineReady, setOfflineReady], updateServiceWorker } = useRegisterSW()
   return (
     <Frame>
       <Header><Logo aria-hidden="true">✓</Logo><Brand>Serie a serie</Brand></Header>
       <Nav aria-label="Secciones">
-        {([['routines', 'Rutinas'], ['exercises', 'Ejercicios'], ['settings', 'Ajustes']] as [Page, string][]).map(([value, label]) =>
+        {([['training', 'Entrenar'], ['routines', 'Rutinas'], ['exercises', 'Ejercicios'], ['settings', 'Ajustes']] as [Page, string][]).map(([value, label]) =>
           <Tab key={value} $active={page === value} aria-current={page === value ? 'page' : undefined} onClick={() => setPage(value)}>{label}</Tab>)}
       </Nav>
-      <main>{page === 'routines' ? <RoutinesPage /> : page === 'exercises' ? <ExercisesPage /> : <SettingsPage />}</main>
+      <main>{page === 'training' ? <TrainingPage /> : page === 'routines' ? <RoutinesPage /> : page === 'exercises' ? <ExercisesPage /> : <SettingsPage />}</main>
       {(needRefresh || offlineReady) && <Toast role="status">
         <span>{needRefresh ? 'Hay una versión nueva disponible.' : 'Lista para usar sin conexión.'}</span>
         <Button size="small" variant="primary" onClick={() => needRefresh ? void updateServiceWorker(true) : setOfflineReady(false)}>{needRefresh ? 'Actualizar' : 'Entendido'}</Button>
