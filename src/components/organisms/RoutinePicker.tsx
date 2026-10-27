@@ -2,16 +2,11 @@ import styled from 'styled-components'
 import { getRoutineProgress } from '../../model'
 import { useAppStore } from '../../store'
 
-const Dock = styled.div`
-  position: sticky; top: 0; z-index: 2; padding: .55rem 0 .8rem;
-  background: ${({ theme }) => theme.background};
-  border-bottom: 1px solid ${({ theme }) => theme.border};
-`
+const Picker = styled.div`padding: .55rem 0 .8rem;`
 const Caption = styled.p`margin: 0 0 .55rem; color: ${({ theme }) => theme.muted}; font-size: .75rem; font-weight: 800; letter-spacing: .075em; text-transform: uppercase;`
 const Grid = styled.div`
   display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem;
-  max-height: 192px; overflow-y: auto; overscroll-behavior: contain;
-  @media (min-width: 700px) { grid-template-columns: repeat(4, minmax(0, 1fr)); max-height: 170px; }
+  @media (min-width: 700px) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 `
 const Tile = styled.button<{ $active: boolean }>`
   min-width: 0; min-height: 70px; padding: .7rem .8rem; text-align: left;
@@ -28,7 +23,7 @@ export function RoutinePicker({ activeId, onSelect }: { activeId: string; onSele
   const routines = useAppStore(state => state.routines)
   const completed = useAppStore(state => state.completed)
   return (
-    <Dock>
+    <Picker>
       <Caption>Selecciona tu rutina · toca la activa para plegarla</Caption>
       <Grid aria-label="Seleccionar rutina">
         {routines.map(routine => {
@@ -41,6 +36,6 @@ export function RoutinePicker({ activeId, onSelect }: { activeId: string; onSele
           </Tile>
         })}
       </Grid>
-    </Dock>
+    </Picker>
   )
 }

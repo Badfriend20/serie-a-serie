@@ -10,17 +10,19 @@ const Number = styled.span`
 `
 const Name = styled.strong`flex:1; min-width:0; overflow-wrap:anywhere;`
 const Complete = styled.span`color:${({ theme }) => theme.success}; font-weight:900; font-size:1.15rem;`
-const Weight = styled.div`display:flex; align-items:center; flex-wrap:wrap; gap:.4rem 1rem; margin:.75rem 0; padding:.6rem 0; border-block:1px solid ${({ theme }) => theme.border};`
+const Weight = styled.div`display:flex; align-items:center; flex-wrap:wrap; gap:.4rem 1rem; margin-top:.85rem; padding-top:.7rem; border-top:1px solid ${({ theme }) => theme.border};`
 const WeightLabel = styled.span`color:${({ theme }) => theme.muted}; font-size:.85rem; font-weight:650;`
-const Grid = styled.div`display: flex; flex-wrap: wrap; gap: .45rem .8rem; margin-top: .9rem;`
+const Grid = styled.div`display:flex; flex-wrap:wrap; gap:.45rem .35rem; margin-top:.9rem;`
 const SetButton = styled.button<{ $done: boolean }>`
-  display:inline-flex; align-items:center; gap:.45rem; min-height:44px; padding:0 .25rem 0 0;
+  display:inline-flex; flex:0 0 calc((100% - .7rem) / 3); min-width:0;
+  align-items:center; gap:.25rem; min-height:44px; padding:0;
   border:0; background:transparent; color:${({ theme }) => theme.text};
+  font-size:clamp(.7rem, 3vw, .875rem); white-space:nowrap;
   font-weight:${({ $done }) => $done ? 750 : 500};
   &:hover { color:${({ theme }) => theme.success}; }
 `
 const Indicator = styled.span<{ $done: boolean }>`
-  display:grid; place-items:center; width:29px; height:29px; flex:none;
+  display:grid; place-items:center; width:24px; height:24px; flex:none;
   border-radius:50%; border:2px solid ${({ theme, $done }) => $done ? theme.success : theme.muted};
   background:${({ theme, $done }) => $done ? theme.success : 'transparent'};
   color:${({ theme }) => theme.onSuccess}; line-height:1; font-weight:900;
@@ -39,7 +41,6 @@ export function SetTracker({ entry, index }: { entry: RoutineEntry; index: numbe
         <Name>{name ?? 'Ejercicio eliminado'}</Name>
         {complete && <Complete role="img" aria-label="Ejercicio completado">✓</Complete>}
       </Heading>
-      <Weight><WeightLabel>Peso del ejercicio (opcional)</WeightLabel><ExerciseWeight entryId={entry.id} exerciseName={name ?? 'ejercicio'} /></Weight>
       <Grid aria-label={`Series de ${name ?? 'ejercicio'}`}>
         {Array.from({ length: entry.sets }, (_, index) => (
           <SetButton key={index} $done={marks?.[index] ?? false}
@@ -50,6 +51,7 @@ export function SetTracker({ entry, index }: { entry: RoutineEntry; index: numbe
           </SetButton>
         ))}
       </Grid>
+      <Weight><WeightLabel>Peso (opcional)</WeightLabel><ExerciseWeight entryId={entry.id} exerciseName={name ?? 'ejercicio'} /></Weight>
     </div>
   )
 }

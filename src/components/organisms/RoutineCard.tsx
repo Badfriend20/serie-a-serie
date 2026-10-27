@@ -7,6 +7,11 @@ import { SetTracker } from '../molecules/SetTracker'
 import { getRoutineProgress } from '../../model'
 
 const Header = styled.div`display:flex; justify-content:space-between; align-items:start; gap:1rem; h2 { margin:0; font-size:1.25rem; overflow-wrap:anywhere; }`
+const StickySummary = styled.div`
+  position: sticky; top: 0; z-index: 2; margin: -1.25rem -1.25rem 0;
+  padding: 1rem 1.25rem .85rem; background: ${({ theme }) => theme.surface};
+  border-bottom: 1px solid ${({ theme }) => theme.border}; border-radius: 20px 20px 0 0;
+`
 const Score = styled.div`display:grid; justify-items:end; gap:.35rem; flex:none;`
 const Percent = styled.strong`color:${({ theme }) => theme.success}; font-size:1.7rem; line-height:1; font-variant-numeric:tabular-nums;`
 const Muted = styled.p`color:${({ theme }) => theme.muted}; margin:.25rem 0 0; font-size:.88rem;`
@@ -27,11 +32,13 @@ export function RoutineCard({ id }: { id: string }) {
   const hasWeights = routine?.entries.some(entry => weightsKg[entry.id] !== undefined) ?? false
   return (
     <Surface id={`routine-${id}`} aria-label={routine?.name}>
-      <Header>
-        <div><h2>{routine?.name}</h2><Muted>{done} de {total} series completas</Muted></div>
-        <Score><Percent>{percent}%</Percent></Score>
-      </Header>
-      <Progress><ProgressBar value={percent} label={`Avance de ${routine?.name}`} /></Progress>
+      <StickySummary>
+        <Header>
+          <div><h2>{routine?.name}</h2><Muted>{done} de {total} series completas</Muted></div>
+          <Score><Percent>{percent}%</Percent></Score>
+        </Header>
+        <Progress><ProgressBar value={percent} label={`Avance de ${routine?.name}`} /></Progress>
+      </StickySummary>
       {complete && <Completion role="status">✓ ¡Rutina completada!</Completion>}
       {routine?.entries.length ? <Items>{routine.entries.map((entry, index) => (
         <Item key={entry.id}>

@@ -8,7 +8,19 @@ import { RoutineEditor } from '../components/organisms/RoutineEditor'
 const Stack = styled.div`display:grid; gap:1rem; align-content:start;`
 const Form = styled.form`display:flex; gap:.6rem; flex-wrap:wrap; > input { flex:1 1 230px; }`
 const List = styled.div`display:grid; gap:.5rem;`
-const Tile = styled.button<{ $active: boolean }>`width:100%; min-height:54px; padding:.7rem 1rem; text-align:left; border-radius:12px; border:2px solid ${({ theme, $active }) => $active ? theme.accentStrong : theme.border}; color:${({ theme }) => theme.text}; background:${({ theme }) => theme.surface}; font-weight:700; overflow-wrap:anywhere;`
+const Group = styled.div<{ $active: boolean }>`
+  min-width:0; border:2px solid ${({ theme, $active }) => $active ? theme.accentStrong : theme.border};
+  border-radius:14px; overflow:hidden; background:${({ theme }) => theme.surface};
+`
+const Tile = styled.button<{ $active: boolean }>`
+  width:100%; min-height:54px; padding:.7rem 1rem; text-align:left; border:0;
+  color:${({ theme }) => theme.text}; background:${({ theme, $active }) => $active ? theme.elevated : theme.surface};
+  font-weight:700; overflow-wrap:anywhere;
+`
+const EditorPanel = styled.div`
+  padding:.75rem; border-top:1px solid ${({ theme }) => theme.border};
+  > section { box-shadow:none; }
+`
 const Note = styled.p`color:${({ theme }) => theme.muted}; margin:0;`
 
 export function RoutinesPage() {
@@ -33,9 +45,17 @@ export function RoutinesPage() {
         <Button type="submit" variant="primary" disabled={!name.trim() || routines.length >= 100}>Crear rutina</Button>
       </Form>
       {!!routines.length && <List aria-label="Rutinas para editar">{routines.map(routine =>
-        <Tile key={routine.id} $active={activeId === routine.id} aria-expanded={activeId === routine.id} onClick={() => setSelectedId(activeId === routine.id ? '' : routine.id)}>{routine.name} · {routine.entries.length} ejercicios</Tile>
+        <Group key={routine.id} $active={activeId === routine.id}>
+          <Tile $active={activeId === routine.id} aria-expanded={activeId === routine.id}
+            aria-controls={activeId === routine.id ? `routine-editor-${routine.id}` : undefined}
+            onClick={() => setSelectedId(activeId === routine.id ? '' : routine.id)}>
+            {routine.name} · {routine.entries.length} ejercicios
+          </Tile>
+          {activeId === routine.id && <EditorPanel id={`routine-editor-${routine.id}`}>
+            <RoutineEditor id={routine.id} />
+          </EditorPanel>}
+        </Group>
       )}</List>}
-      {activeId && <RoutineEditor key={activeId} id={activeId} />}
     </Stack>
   )
 }
