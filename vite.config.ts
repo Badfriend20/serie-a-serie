@@ -15,6 +15,7 @@ export default defineConfig({
       manifest: {
         name: 'Serie a serie',
         short_name: 'Series',
+        id: base,
         description: 'Marca tus series y organiza tus rutinas en tu dispositivo.',
         lang: 'es',
         theme_color: '#171b28',

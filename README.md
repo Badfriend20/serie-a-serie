@@ -21,6 +21,8 @@ npm run preview
 
 El build incluye TypeScript y genera `dist/`. Para probar la instalación y el uso sin conexión, usa `npm run preview` en localhost, carga la página una vez y luego activa modo sin conexión en las herramientas del navegador. El service worker no se usa durante `npm run dev`.
 
+El manifiesto identifica la PWA con `id`, `start_url` y `scope` en la ruta del repositorio. Backlog Quest usa otra ruta en el mismo dominio; cada app tiene un alcance distinto. Al compartir origen, ambas comparten el espacio de almacenamiento del sitio aunque usen claves locales diferentes. Si Android muestra una instalación anterior que no abre, conviene revisar primero la app o el acceso directo en el dispositivo; borrar todos los datos del sitio puede borrar las rutinas y también los datos de otras apps de ese origen. Exporta un respaldo antes de cualquier limpieza de datos.
+
 ## GitHub Pages
 
 1. Crea un repositorio público vacío, por ejemplo `serie-a-serie`, y sube estos archivos a la rama `main`.
