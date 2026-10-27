@@ -1,4 +1,5 @@
-import styled from 'styled-components'
+import { useEffect, useRef, useState } from 'react'
+import styled, { keyframes } from 'styled-components'
 import { useAppStore } from '../../store'
 import { Button } from '../atoms/Button'
 import { ProgressBar } from '../atoms/ProgressBar'
@@ -17,6 +18,36 @@ const Percent = styled.strong`color:${({ theme }) => theme.success}; font-size:1
 const Muted = styled.p`color:${({ theme }) => theme.muted}; margin:.25rem 0 0; font-size:.88rem;`
 const Progress = styled.div`margin-top:1rem;`
 const Completion = styled.div`padding:.8rem 1rem; margin-top:1rem; border-radius:12px; background:${({ theme }) => theme.successSurface}; color:${({ theme }) => theme.success}; font-weight:750;`
+const burst = keyframes`
+  0% { opacity:0; transform:translate(-50%, -50%) scale(.4); }
+  15% { opacity:1; }
+  100% { opacity:0; transform:translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(var(--spin)); }
+`
+const arrive = keyframes`
+  0% { opacity:0; transform:scale(.75); }
+  20% { opacity:1; transform:scale(1.08); }
+  35%, 75% { opacity:1; transform:scale(1); }
+  100% { opacity:0; transform:scale(1); }
+`
+const Celebration = styled.div`
+  position:fixed; inset:0; z-index:10; display:grid; place-items:center; pointer-events:none;
+  @media (prefers-reduced-motion: reduce) { display:none; }
+`
+const FestiveBadge = styled.div`
+  z-index:1; max-width:calc(100vw - 2rem); padding:1rem 1.25rem;
+  border:2px solid ${({ theme }) => theme.success}; border-radius:18px;
+  background:${({ theme }) => theme.surface}; color:${({ theme }) => theme.text};
+  box-shadow:0 12px 35px #0005; font-size:1.2rem; font-weight:800; text-align:center;
+  animation:${arrive} 1.8s ease-out both;
+`
+const Confetti = styled.span<{ $index: number }>`
+  --x:${({ $index }) => Math.round(Math.cos($index * Math.PI / 6) * (115 + $index % 3 * 25))}px;
+  --y:${({ $index }) => Math.round(Math.sin($index * Math.PI / 6) * (115 + $index % 3 * 25))}px;
+  --spin:${({ $index }) => ($index % 2 ? 270 : -270)}deg;
+  position:absolute; top:50%; left:50%; width:8px; height:12px; border-radius:2px;
+  background:${({ theme, $index }) => $index % 2 ? theme.accent : theme.success};
+  animation:${burst} 1.5s ease-out ${({ $index }) => $index % 4 * .04}s both;
+`
 const Actions = styled.div`display:flex; flex-wrap:wrap; gap:.45rem; margin-top:1.1rem;`
 const Items = styled.div`display:grid; gap:1rem; margin-top:1.2rem;`
 const Item = styled.div`padding:1rem; background:${({ theme }) => theme.elevated}; border:1px solid ${({ theme }) => theme.border}; border-radius:15px;`
@@ -29,7 +60,20 @@ export function RoutineCard({ id }: { id: string }) {
   const resetRoutineMarks = useAppStore(state => state.resetRoutineMarks)
   const resetRoutineWeights = useAppStore(state => state.resetRoutineWeights)
   const { total, done, percent, complete } = routine ? getRoutineProgress(routine, completed) : { total: 0, done: 0, percent: 0, complete: false }
+  const wasComplete = useRef(complete)
+  const [celebrating, setCelebrating] = useState(false)
   const hasWeights = routine?.entries.some(entry => weightsKg[entry.id] !== undefined) ?? false
+  useEffect(() => {
+    const justCompleted = complete && !wasComplete.current
+    wasComplete.current = complete
+    if (!justCompleted) {
+      if (!complete) setCelebrating(false)
+      return
+    }
+    setCelebrating(true)
+    const timeout = window.setTimeout(() => setCelebrating(false), 1800)
+    return () => window.clearTimeout(timeout)
+  }, [complete])
   return (
     <Surface id={`routine-${id}`} aria-label={routine?.name}>
       <StickySummary>
@@ -40,6 +84,10 @@ export function RoutineCard({ id }: { id: string }) {
         <Progress><ProgressBar value={percent} label={`Avance de ${routine?.name}`} /></Progress>
       </StickySummary>
       {complete && <Completion role="status">✓ ¡Rutina completada!</Completion>}
+      {celebrating && <Celebration aria-hidden="true">
+        <FestiveBadge>🎉 ¡Rutina completada!</FestiveBadge>
+        {Array.from({ length: 12 }, (_, index) => <Confetti key={index} $index={index} />)}
+      </Celebration>}
       {routine?.entries.length ? <Items>{routine.entries.map((entry, index) => (
         <Item key={entry.id}>
           <SetTracker entry={entry} index={index + 1} />
