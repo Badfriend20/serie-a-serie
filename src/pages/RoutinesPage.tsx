@@ -28,13 +28,11 @@ export function RoutinesPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const routines = useAppStore(state => state.routines)
   const addRoutine = useAppStore(state => state.addRoutine)
-  const activeId = selectedId === '' ? '' : routines.some(routine => routine.id === selectedId)
-    ? selectedId! : routines[0]?.id ?? ''
+  const activeId = routines.some(routine => routine.id === selectedId) ? selectedId : null
   const submit = (event: FormEvent) => {
     event.preventDefault()
     if (!name.trim()) return
     addRoutine(name.trim())
-    setSelectedId(useAppStore.getState().routines.at(-1)?.id ?? null)
     setName('')
   }
   return (
@@ -48,7 +46,7 @@ export function RoutinesPage() {
         <Group key={routine.id} $active={activeId === routine.id}>
           <Tile $active={activeId === routine.id} aria-expanded={activeId === routine.id}
             aria-controls={activeId === routine.id ? `routine-editor-${routine.id}` : undefined}
-            onClick={() => setSelectedId(activeId === routine.id ? '' : routine.id)}>
+            onClick={() => setSelectedId(activeId === routine.id ? null : routine.id)}>
             {routine.name} · {routine.entries.length} ejercicios
           </Tile>
           {activeId === routine.id && <EditorPanel id={`routine-editor-${routine.id}`}>
