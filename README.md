@@ -21,7 +21,9 @@ npm run preview
 
 El build incluye TypeScript y genera `dist/`. Para probar la instalación y el uso sin conexión, usa `npm run preview` en localhost, carga la página una vez y luego activa modo sin conexión en las herramientas del navegador. El service worker no se usa durante `npm run dev`.
 
-El manifiesto identifica la PWA con `id`, `start_url` y `scope` en la ruta del repositorio. Backlog Quest usa otra ruta en el mismo dominio; cada app tiene un alcance distinto. Al compartir origen, ambas comparten el espacio de almacenamiento del sitio aunque usen claves locales diferentes. Si Android muestra una instalación anterior que no abre, conviene revisar primero la app o el acceso directo en el dispositivo; borrar todos los datos del sitio puede borrar las rutinas y también los datos de otras apps de ese origen. Exporta un respaldo antes de cualquier limpieza de datos.
+El manifiesto identifica la PWA con `id`, `start_url` y `scope` en la ruta del repositorio. Backlog Quest usa otra ruta en el mismo dominio y tiene un alcance distinto. Sin embargo, [un fallo reportado en Chromium](https://issues.chromium.org/issues/572287931) puede impedir instalar una segunda PWA de ese dominio en Android: Chrome afirma que ya está instalada y el botón para abrirla falla, incluso con IDs y alcances distintos. Como alternativa temporal, elige **Crear acceso directo** en el menú de Chrome; el acceso se abrirá en Chrome. Para instalaciones completamente independientes se necesitan orígenes distintos, por ejemplo otro dominio o subdominio.
+
+Al compartir origen, ambas apps comparten el espacio de almacenamiento del sitio aunque usen claves locales diferentes. **No borres los datos del sitio para intentar reparar la instalación**: perderías los datos locales de ambas. Exporta los respaldos antes de una futura migración de dominio, porque el nuevo origen no puede leer el almacenamiento del anterior.
 
 ## GitHub Pages
 
