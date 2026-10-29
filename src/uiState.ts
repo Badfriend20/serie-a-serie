@@ -1,4 +1,4 @@
-type UiKey = 'page' | 'routine'
+type UiKey = 'page' | 'routine' | 'timer'
 
 const keyFor = (key: UiKey) => `serie-a-serie:ui:${key}`
 

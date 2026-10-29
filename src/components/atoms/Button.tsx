@@ -10,7 +10,7 @@ const Control = styled.button<{ $variant: NonNullable<Props['variant']>; $size: 
   display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
   min-height: ${({ $size }) => $size === 'small' ? '36px' : '44px'};
   padding: ${({ $size }) => $size === 'small' ? '.35rem .7rem' : '.65rem 1rem'};
-  border-radius: 12px; border: 1px solid transparent; font-weight: 700;
+  border-radius: ${({ theme }) => theme.radius.md}; border: 1px solid transparent; font-weight: 700;
   transition: transform .15s ease, background .15s ease;
   &:active:not(:disabled) { transform: scale(.97); }
   &:disabled { opacity: .45; cursor: not-allowed; }
@@ -24,7 +24,7 @@ const Control = styled.button<{ $variant: NonNullable<Props['variant']>; $size: 
     background: transparent; color: ${theme.muted};
   `}
   ${({ $variant, theme }) => $variant === 'danger' && css`
-    background: transparent; color: ${theme.dark ? '#ffaba4' : '#a53232'};
+    background: transparent; color: ${theme.danger};
     border-color: ${theme.border};
   `}
 `

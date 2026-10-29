@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { emptyData, migrateWeights, type Accent, type AppData, type ThemeMode } from './model'
+import { MAX_ENTRIES_PER_ROUTINE, MAX_ENTRY_NOTE_LENGTH, MAX_EXERCISES, MAX_NAME_LENGTH,
+  MAX_REST_SECONDS, MAX_ROUTINES, MAX_WEIGHT_KG, MIN_REST_SECONDS } from './config'
 
 type AppStore = AppData & {
   addExercise: (name: string) => void
@@ -14,6 +16,8 @@ type AppStore = AppData & {
   removeEntry: (routineId: string, entryId: string) => void
   moveEntry: (routineId: string, entryId: string, direction: -1 | 1) => void
   setCount: (routineId: string, entryId: string, count: number) => void
+  setEntryNote: (routineId: string, entryId: string, note: string) => void
+  setEntryRest: (routineId: string, entryId: string, seconds: number | null) => void
   toggleSet: (entryId: string, index: number) => void
   setWeightKg: (entryId: string, weight: number | null) => void
   resetRoutineMarks: (routineId: string) => void
@@ -27,7 +31,7 @@ const id = () => crypto.randomUUID()
 
 export const useAppStore = create<AppStore>()(persist((set) => ({
   ...emptyData,
-  addExercise: name => set(state => state.exercises.length >= 500 ? state :
+  addExercise: name => set(state => state.exercises.length >= MAX_EXERCISES ? state :
     ({ exercises: [...state.exercises, { id: id(), name: name.trim() }] })),
   renameExercise: (exerciseId, name) => set(state => ({ exercises: state.exercises.map(exercise =>
     exercise.id === exerciseId ? { ...exercise, name: name.trim() } : exercise) })),
@@ -40,7 +44,7 @@ export const useAppStore = create<AppStore>()(persist((set) => ({
       weightsKg: Object.fromEntries(Object.entries(state.weightsKg).filter(([key]) => retained.has(key)))
     }
   }),
-  addRoutine: name => set(state => state.routines.length >= 100 ? state :
+  addRoutine: name => set(state => state.routines.length >= MAX_ROUTINES ? state :
     ({ routines: [...state.routines, { id: id(), name: name.trim(), entries: [] }] })),
   renameRoutine: (routineId, name) => set(state => ({ routines: state.routines.map(routine =>
     routine.id === routineId ? { ...routine, name: name.trim() } : routine) })),
@@ -52,12 +56,12 @@ export const useAppStore = create<AppStore>()(persist((set) => ({
       weightsKg: Object.fromEntries(Object.entries(state.weightsKg).filter(([key]) => !ids.has(key))) }
   }),
   addEntry: (routineId, exerciseId) => set(state => ({ routines: state.routines.map(routine =>
-    routine.id === routineId && routine.entries.length < 500 && state.exercises.some(exercise => exercise.id === exerciseId)
+    routine.id === routineId && routine.entries.length < MAX_ENTRIES_PER_ROUTINE && state.exercises.some(exercise => exercise.id === exerciseId)
       ? { ...routine, entries: [...routine.entries, { id: id(), exerciseId, sets: 3 }] } : routine) })),
   createExerciseInRoutine: (routineId, name) => set(state => {
     const trimmed = name.trim()
-    if (!trimmed || trimmed.length > 80 || state.exercises.length >= 500 ||
-        !state.routines.some(routine => routine.id === routineId && routine.entries.length < 500)) return state
+    if (!trimmed || trimmed.length > MAX_NAME_LENGTH || state.exercises.length >= MAX_EXERCISES ||
+        !state.routines.some(routine => routine.id === routineId && routine.entries.length < MAX_ENTRIES_PER_ROUTINE)) return state
     const exerciseId = id()
     return { exercises: [...state.exercises, { id: exerciseId, name: trimmed }],
       routines: state.routines.map(routine => routine.id === routineId ? { ...routine,
@@ -85,6 +89,14 @@ export const useAppStore = create<AppStore>()(persist((set) => ({
       entries: routine.entries.map(entry => entry.id === entryId ? { ...entry, sets: count } : entry) } : routine),
     completed: { ...state.completed, [entryId]: Array.from({ length: count }, (_, index) => state.completed[entryId]?.[index] ?? false) }
   })),
+  setEntryNote: (routineId, entryId, note) => set(state => ({ routines: state.routines.map(routine =>
+    routine.id === routineId ? { ...routine, entries: routine.entries.map(entry =>
+      entry.id === entryId ? { ...entry, note: note.slice(0, MAX_ENTRY_NOTE_LENGTH) } : entry) } : routine) })),
+  setEntryRest: (routineId, entryId, seconds) => set(state => {
+    if (seconds !== null && (!Number.isInteger(seconds) || seconds < MIN_REST_SECONDS || seconds > MAX_REST_SECONDS)) return state
+    return { routines: state.routines.map(routine => routine.id === routineId ? { ...routine,
+      entries: routine.entries.map(entry => entry.id === entryId ? { ...entry, restSeconds: seconds ?? undefined } : entry) } : routine) }
+  }),
   toggleSet: (entryId, index) => set(state => {
     const entry = state.routines.flatMap(routine => routine.entries).find(item => item.id === entryId)
     if (!entry || index < 0 || index >= entry.sets) return state
@@ -95,7 +107,7 @@ export const useAppStore = create<AppStore>()(persist((set) => ({
   setWeightKg: (entryId, weight) => set(state => {
     const entry = state.routines.flatMap(routine => routine.entries).find(item => item.id === entryId)
     if (!entry || (weight !== null &&
-        (!Number.isFinite(weight) || weight < 0 || weight > 10000))) return state
+        (!Number.isFinite(weight) || weight < 0 || weight > MAX_WEIGHT_KG))) return state
     const weightsKg = { ...state.weightsKg }
     if (weight === null) delete weightsKg[entryId]
     else weightsKg[entryId] = weight

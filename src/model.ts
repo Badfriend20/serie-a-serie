@@ -1,7 +1,10 @@
+import { MAX_ENTRIES_PER_ROUTINE, MAX_ENTRY_NOTE_LENGTH, MAX_EXERCISES, MAX_NAME_LENGTH,
+  MAX_REST_SECONDS, MAX_ROUTINES, MAX_SETS_PER_EXERCISE, MAX_WEIGHT_KG, MIN_REST_SECONDS } from './config'
+
 export type ThemeMode = 'system' | 'light' | 'dark'
 export type Accent = 'coral' | 'mint' | 'violet'
 export type Exercise = { id: string; name: string }
-export type RoutineEntry = { id: string; exerciseId: string; sets: number }
+export type RoutineEntry = { id: string; exerciseId: string; sets: number; note?: string; restSeconds?: number }
 export type Routine = { id: string; name: string; entries: RoutineEntry[] }
 export type AppData = {
   exercises: Exercise[]
@@ -27,7 +30,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
 
 const validWeight = (value: unknown): value is number =>
-  typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 10000
+  typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= MAX_WEIGHT_KG
 
 export function migrateWeights(weights: unknown): AppData['weightsKg'] {
   if (!isRecord(weights)) return {}
@@ -47,12 +50,12 @@ export function parseBackup(input: unknown): AppData {
   if (!Array.isArray(data.exercises) || !Array.isArray(data.routines) || !isRecord(data.completed) ||
       !['system', 'light', 'dark'].includes(String(data.mode)) ||
       !['coral', 'mint', 'violet'].includes(String(data.accent)) ||
-      data.exercises.length > 500 || data.routines.length > 100) {
+      data.exercises.length > MAX_EXERCISES || data.routines.length > MAX_ROUTINES) {
     throw new Error('Los datos del respaldo son inválidos o demasiado grandes.')
   }
   const exercises = data.exercises.map((value: unknown) => {
     if (!isRecord(value) || typeof value.id !== 'string' || !value.id ||
-        typeof value.name !== 'string' || !value.name.trim() || value.name.length > 80) {
+        typeof value.name !== 'string' || !value.name.trim() || value.name.length > MAX_NAME_LENGTH) {
       throw new Error('Hay ejercicios inválidos en el respaldo.')
     }
     return { id: value.id, name: value.name.trim() }
@@ -62,19 +65,24 @@ export function parseBackup(input: unknown): AppData {
   const entryIds = new Set<string>()
   const routines = data.routines.map((value: unknown) => {
     if (!isRecord(value) || typeof value.id !== 'string' || !value.id ||
-        typeof value.name !== 'string' || !value.name.trim() || value.name.length > 80 ||
-        !Array.isArray(value.entries) || value.entries.length > 500) {
+        typeof value.name !== 'string' || !value.name.trim() || value.name.length > MAX_NAME_LENGTH ||
+        !Array.isArray(value.entries) || value.entries.length > MAX_ENTRIES_PER_ROUTINE) {
       throw new Error('Hay rutinas inválidas en el respaldo.')
     }
     const entries = value.entries.map((item: unknown) => {
       if (!isRecord(item) || typeof item.id !== 'string' || !item.id ||
           typeof item.exerciseId !== 'string' || !exerciseIds.has(item.exerciseId) ||
-          !Number.isInteger(item.sets) || (item.sets as number) < 1 || (item.sets as number) > 20 ||
+          !Number.isInteger(item.sets) || (item.sets as number) < 1 || (item.sets as number) > MAX_SETS_PER_EXERCISE ||
+          (item.note !== undefined && (typeof item.note !== 'string' || item.note.length > MAX_ENTRY_NOTE_LENGTH)) ||
+          (item.restSeconds !== undefined && (!Number.isInteger(item.restSeconds) ||
+            (item.restSeconds as number) < MIN_REST_SECONDS || (item.restSeconds as number) > MAX_REST_SECONDS)) ||
           entryIds.has(item.id)) {
         throw new Error('Hay series o referencias inválidas en el respaldo.')
       }
       entryIds.add(item.id)
-      return { id: item.id, exerciseId: item.exerciseId, sets: item.sets as number }
+      return { id: item.id, exerciseId: item.exerciseId, sets: item.sets as number,
+        ...(typeof item.note === 'string' ? { note: item.note } : {}),
+        ...(typeof item.restSeconds === 'number' ? { restSeconds: item.restSeconds } : {}) }
     })
     return { id: value.id, name: value.name.trim(), entries }
   })

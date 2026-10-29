@@ -6,6 +6,9 @@ import { ProgressBar } from '../atoms/ProgressBar'
 import { Surface } from '../atoms/Surface'
 import { SetTracker } from '../molecules/SetTracker'
 import { getRoutineProgress } from '../../model'
+import { DEFAULT_REST_SECONDS } from '../../config'
+import { useRestTimer } from '../../useRestTimer'
+import { RestTimerControls } from '../molecules/RestTimerControls'
 
 const Header = styled.div`display:flex; justify-content:space-between; align-items:start; gap:1rem; h2 { margin:0; font-size:1.25rem; overflow-wrap:anywhere; }`
 const StickySummary = styled.div`
@@ -37,7 +40,7 @@ const FestiveBadge = styled.div`
   z-index:1; max-width:calc(100vw - 2rem); padding:1rem 1.25rem;
   border:2px solid ${({ theme }) => theme.success}; border-radius:18px;
   background:${({ theme }) => theme.surface}; color:${({ theme }) => theme.text};
-  box-shadow:0 12px 35px #0005; font-size:1.2rem; font-weight:800; text-align:center;
+  box-shadow:${({ theme }) => theme.raisedShadow}; font-size:1.2rem; font-weight:800; text-align:center;
   animation:${arrive} 1.8s ease-out both;
 `
 const Confetti = styled.span<{ $index: number }>`
@@ -59,6 +62,7 @@ export function RoutineCard({ id }: { id: string }) {
   const weightsKg = useAppStore(state => state.weightsKg)
   const resetRoutineMarks = useAppStore(state => state.resetRoutineMarks)
   const resetRoutineWeights = useAppStore(state => state.resetRoutineWeights)
+  const timer = useRestTimer(id)
   const { total, done, percent, complete } = routine ? getRoutineProgress(routine, completed) : { total: 0, done: 0, percent: 0, complete: false }
   const wasComplete = useRef(complete)
   const [celebrating, setCelebrating] = useState(false)
@@ -82,6 +86,7 @@ export function RoutineCard({ id }: { id: string }) {
           <Score><Percent>{percent}%</Percent></Score>
         </Header>
         <Progress><ProgressBar value={percent} label={`Avance de ${routine?.name}`} /></Progress>
+        <RestTimerControls enabled={timer.enabled} remaining={timer.remaining} onToggle={timer.toggle} onSkip={timer.stop} />
       </StickySummary>
       {complete && <Completion role="status">✓ ¡Rutina completada!</Completion>}
       {celebrating && <Celebration aria-hidden="true">
@@ -90,12 +95,18 @@ export function RoutineCard({ id }: { id: string }) {
       </Celebration>}
       {routine?.entries.length ? <Items>{routine.entries.map((entry, index) => (
         <Item key={entry.id}>
-          <SetTracker entry={entry} index={index + 1} />
+          <SetTracker entry={entry} index={index + 1} onSetCompleted={() => {
+            if (routine && getRoutineProgress(routine, useAppStore.getState().completed).complete) timer.stop()
+            else timer.start(entry.restSeconds ?? DEFAULT_REST_SECONDS)
+          }} />
         </Item>
       ))}</Items> : <Muted>Sin ejercicios. Agrégalos en la pestaña Rutinas.</Muted>}
       <Actions>
         <Button size="small" variant="quiet" disabled={done === 0} onClick={() => {
-          if (window.confirm('¿Reiniciar las series completadas de esta rutina? Los pesos se conservarán.')) resetRoutineMarks(id)
+          if (window.confirm('¿Reiniciar las series completadas de esta rutina? Los pesos se conservarán.')) {
+            resetRoutineMarks(id)
+            timer.stop()
+          }
         }}><span aria-hidden="true">↻</span> Reiniciar series</Button>
         <Button size="small" variant="quiet" disabled={!hasWeights} onClick={() => {
           if (window.confirm('¿Borrar los pesos de los ejercicios de esta rutina? Las series completadas se conservarán.')) resetRoutineWeights(id)

@@ -9,6 +9,8 @@ const Number = styled.span`
   background:${({ theme }) => theme.surface}; color:${({ theme }) => theme.muted}; font-size:.85rem;
 `
 const Name = styled.strong`flex:1; min-width:0; overflow-wrap:anywhere;`
+const Title = styled.div`flex:1; min-width:0; display:grid; gap:.1rem;`
+const Details = styled.span`color:${({ theme }) => theme.muted}; font-size:.78rem; font-weight:500; white-space:pre-wrap; overflow-wrap:anywhere;`
 const Complete = styled.span`color:${({ theme }) => theme.success}; font-weight:900; font-size:1.15rem;`
 const Grid = styled.div`display:flex; flex-wrap:wrap; gap:.45rem .35rem; margin-top:.9rem;`
 const SetButton = styled.button<{ $done: boolean }>`
@@ -26,24 +28,36 @@ const Indicator = styled.span<{ $done: boolean }>`
   color:${({ theme }) => theme.onSuccess}; line-height:1; font-weight:900;
 `
 
-export function SetTracker({ entry, index }: { entry: RoutineEntry; index: number }) {
+export function SetTracker({ entry, index, onSetCompleted }: { entry: RoutineEntry; index: number; onSetCompleted: () => void }) {
   const marks = useAppStore(state => state.completed[entry.id])
   const toggleSet = useAppStore(state => state.toggleSet)
   const exercises = useAppStore(state => state.exercises)
   const name = exercises.find(exercise => exercise.id === entry.exerciseId)?.name
+  const separator = name?.indexOf(' · ') ?? -1
+  const title = separator > 0 ? name!.slice(0, separator) : name
+  const existingDetails = separator > 0 ? name!.slice(separator + 3) : ''
   const complete = entry.sets > 0 && Array.from({ length: entry.sets }, (_, i) => marks?.[i] ?? false).every(Boolean)
   return (
     <div>
       <Heading>
         <Number aria-hidden="true">{index}</Number>
-        <Name>{name ?? 'Ejercicio eliminado'}</Name>
+        <Title>
+          <Name>{title ?? 'Ejercicio eliminado'}</Name>
+          {existingDetails && <Details>{existingDetails}</Details>}
+          {entry.note?.trim() && <Details>{entry.note.trim()}</Details>}
+          {entry.restSeconds && <Details>Descanso: {entry.restSeconds} s</Details>}
+        </Title>
         {complete && <Complete role="img" aria-label="Ejercicio completado">✓</Complete>}
       </Heading>
       <Grid aria-label={`Series de ${name ?? 'ejercicio'}`}>
         {Array.from({ length: entry.sets }, (_, index) => (
           <SetButton key={index} $done={marks?.[index] ?? false}
             aria-label={`${name}, serie ${index + 1}, ${marks?.[index] ? 'completada' : 'pendiente'}`}
-            aria-pressed={marks?.[index] ?? false} onClick={() => toggleSet(entry.id, index)}>
+            aria-pressed={marks?.[index] ?? false} onClick={() => {
+              const wasDone = marks?.[index] ?? false
+              toggleSet(entry.id, index)
+              if (!wasDone) onSetCompleted()
+            }}>
             <Indicator $done={marks?.[index] ?? false} aria-hidden="true">{marks?.[index] ? '✓' : ''}</Indicator>
             <span>Serie {index + 1}</span>
           </SetButton>

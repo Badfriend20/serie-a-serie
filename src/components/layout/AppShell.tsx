@@ -15,7 +15,7 @@ const Logo = styled.div`width:42px; height:42px; display:grid; place-items:cente
 const Brand = styled.div`font-size:1.15rem; font-weight:800; letter-spacing:-.035em;`
 const Nav = styled.nav`display:flex; gap:.35rem; padding:.3rem; margin: .7rem 0 1.6rem; border-radius:14px; background:${({ theme }) => theme.surface}; border:1px solid ${({ theme }) => theme.border};`
 const Tab = styled.button<{ $active: boolean }>`flex:1; padding:.7rem .35rem; border:0; border-radius:10px; font-weight:700; background:${({ theme, $active }) => $active ? theme.elevated : 'transparent'}; color:${({ theme, $active }) => $active ? theme.text : theme.muted};`
-const Toast = styled.div`position:fixed; z-index:3; bottom:1rem; left:50%; transform:translateX(-50%); width:min(95%,500px); padding:1rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; background:${({ theme }) => theme.surface}; color:${({ theme }) => theme.text}; border:1px solid ${({ theme }) => theme.border}; border-radius:15px; box-shadow:0 12px 35px #0003;`
+const Toast = styled.div`position:fixed; z-index:3; bottom:1rem; left:50%; transform:translateX(-50%); width:min(95%,500px); padding:1rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; background:${({ theme }) => theme.surface}; color:${({ theme }) => theme.text}; border:1px solid ${({ theme }) => theme.border}; border-radius:15px; box-shadow:${({ theme }) => theme.raisedShadow};`
 
 export function AppShell() {
   const [page, setPage] = useState<Page>(() => {

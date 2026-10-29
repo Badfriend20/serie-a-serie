@@ -1,0 +1,14 @@
+export const KG_PER_LB = 0.45359237
+export const MAX_NAME_LENGTH = 80
+export const MAX_EXERCISES = 500
+export const MAX_ROUTINES = 100
+export const MAX_ENTRIES_PER_ROUTINE = 500
+export const MAX_SETS_PER_EXERCISE = 20
+export const MAX_WEIGHT_KG = 10_000
+export const MAX_BACKUP_BYTES = 2_000_000
+export const MAX_ENTRY_NOTE_LENGTH = 160
+export const DEFAULT_REST_SECONDS = 90
+export const MIN_REST_SECONDS = 10
+export const MAX_REST_SECONDS = 600
+export const TIMER_TICK_MS = 1000
+export const TIMER_FINISHED_DISPLAY_MS = 15_000

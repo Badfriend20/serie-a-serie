@@ -4,6 +4,7 @@ import { useAppStore } from '../store'
 import { parseBackup, type Accent, type ThemeMode } from '../model'
 import { Button } from '../components/atoms/Button'
 import { Surface } from '../components/atoms/Surface'
+import { MAX_BACKUP_BYTES } from '../config'
 
 const Stack = styled.div`display:grid; gap:1rem;`
 const Group = styled.div`display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.65rem;`
@@ -31,7 +32,7 @@ export function SettingsPage() {
     const file = event.target.files?.[0]
     event.target.value = ''
     if (!file) return
-    if (file.size > 2_000_000) { setMessage('El archivo supera el límite de 2 MB.'); return }
+    if (file.size > MAX_BACKUP_BYTES) { setMessage('El archivo supera el límite de 2 MB.'); return }
     try {
       const data = parseBackup(JSON.parse(await file.text()))
       if (window.confirm('¿Reemplazar todos los datos actuales con este respaldo?')) {

@@ -4,6 +4,7 @@ import { useAppStore } from '../store'
 import { Button } from '../components/atoms/Button'
 import { TextField } from '../components/atoms/TextField'
 import { RoutineEditor } from '../components/organisms/RoutineEditor'
+import { MAX_NAME_LENGTH, MAX_ROUTINES } from '../config'
 
 const Stack = styled.div`display:grid; gap:1rem; align-content:start;`
 const Form = styled.form`display:flex; gap:.6rem; flex-wrap:wrap; > input { flex:1 1 230px; }`
@@ -39,8 +40,8 @@ export function RoutinesPage() {
     <Stack>
       <div><h1>Organizar rutinas</h1><Note>Crea una rutina y agrega ejercicios del catálogo o nuevos.</Note></div>
       <Form onSubmit={submit}>
-        <TextField aria-label="Nombre de la nueva rutina" placeholder="Nueva rutina, por ejemplo, Día A" maxLength={80} value={name} onChange={event => setName(event.target.value)} />
-        <Button type="submit" variant="primary" disabled={!name.trim() || routines.length >= 100}>Crear rutina</Button>
+        <TextField aria-label="Nombre de la nueva rutina" placeholder="Nueva rutina, por ejemplo, Día A" maxLength={MAX_NAME_LENGTH} value={name} onChange={event => setName(event.target.value)} />
+        <Button type="submit" variant="primary" disabled={!name.trim() || routines.length >= MAX_ROUTINES}>Crear rutina</Button>
       </Form>
       {!!routines.length && <List aria-label="Rutinas para editar">{routines.map(routine =>
         <Group key={routine.id} $active={activeId === routine.id}>

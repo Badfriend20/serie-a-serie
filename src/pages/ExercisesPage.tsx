@@ -4,6 +4,7 @@ import { useAppStore } from '../store'
 import { Button } from '../components/atoms/Button'
 import { Surface } from '../components/atoms/Surface'
 import { TextField } from '../components/atoms/TextField'
+import { MAX_EXERCISES, MAX_NAME_LENGTH } from '../config'
 
 const Stack = styled.div`display:grid; gap:1rem;`
 const Form = styled.form`display:flex; gap:.6rem; flex-wrap:wrap; > input { flex:1 1 230px; }`
@@ -27,8 +28,8 @@ export function ExercisesPage() {
     <Stack>
       <div><h1>Ejercicios</h1><Note>Tu catálogo se puede usar en tantas rutinas como quieras.</Note></div>
       <Form onSubmit={submit}>
-        <TextField aria-label="Nombre del ejercicio" placeholder="Por ejemplo, remo" maxLength={80} value={name} onChange={event => setName(event.target.value)} />
-        <Button type="submit" variant="primary" disabled={!name.trim() || exercises.length >= 500}>Agregar</Button>
+        <TextField aria-label="Nombre del ejercicio" placeholder="Por ejemplo, remo" maxLength={MAX_NAME_LENGTH} value={name} onChange={event => setName(event.target.value)} />
+        <Button type="submit" variant="primary" disabled={!name.trim() || exercises.length >= MAX_EXERCISES}>Agregar</Button>
       </Form>
       <Surface>
         {exercises.length ? exercises.map(exercise => <Row key={exercise.id}>
@@ -36,7 +37,7 @@ export function ExercisesPage() {
           <Actions>
             <Button size="small" onClick={() => {
               const next = window.prompt('Nuevo nombre del ejercicio', exercise.name)?.trim()
-              if (next && next.length <= 80) renameExercise(exercise.id, next)
+              if (next && next.length <= MAX_NAME_LENGTH) renameExercise(exercise.id, next)
             }}>Editar</Button>
             <Button size="small" variant="danger" onClick={() => {
               if (window.confirm(`¿Eliminar «${exercise.name}» de todas las rutinas y borrar sus marcas?`)) removeExercise(exercise.id)

@@ -29,7 +29,12 @@ export const makeTheme = (mode: ThemeMode, accent: Accent, prefersDark: boolean)
     success: dark ? '#67e2a3' : '#176f48',
     successSurface: dark ? '#153329' : '#e6f5ec',
     onSuccess: dark ? '#10251b' : '#ffffff',
-    onAccent: '#171b22'
+    onAccent: '#171b22',
+    danger: dark ? '#ffaba4' : '#a53232',
+    shadow: dark ? '0 8px 32px #0003' : '0 8px 32px #0001',
+    raisedShadow: '0 12px 35px #0005',
+    space: { xs: '.35rem', sm: '.5rem', md: '1rem', lg: '1.25rem' },
+    radius: { sm: '10px', md: '12px', lg: '20px' }
   }
 }
 
