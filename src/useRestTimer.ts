@@ -5,15 +5,18 @@ import { readUiState, saveUiState } from './uiState'
 type TimerState = { routineId: string; enabled: boolean; endsAt: number | null }
 
 const initialState = (routineId: string): TimerState => {
+  const preference = readUiState('timerEnabled')
   try {
     const saved = JSON.parse(readUiState('timer') ?? 'null') as Partial<TimerState> | null
+    const enabled = preference === 'true' ? true : preference === 'false' ? false : saved?.enabled === true
     if (saved?.routineId === routineId && typeof saved.enabled === 'boolean' &&
         (saved.endsAt === null || (typeof saved.endsAt === 'number' && Number.isFinite(saved.endsAt)))) {
-      return { routineId, enabled: saved.enabled,
-        endsAt: saved.enabled && saved.endsAt && saved.endsAt > Date.now() - TIMER_FINISHED_DISPLAY_MS ? saved.endsAt : null }
+      return { routineId, enabled,
+        endsAt: enabled && saved.endsAt && saved.endsAt > Date.now() - TIMER_FINISHED_DISPLAY_MS ? saved.endsAt : null }
     }
-  } catch { /* Ignore an invalid saved timer. */ }
-  return { routineId, enabled: false, endsAt: null }
+    return { routineId, enabled, endsAt: null }
+  } catch { /* Ignore an invalid saved countdown. */ }
+  return { routineId, enabled: preference === 'true', endsAt: null }
 }
 
 export function useRestTimer(routineId: string) {
@@ -37,7 +40,10 @@ export function useRestTimer(routineId: string) {
   return {
     enabled: timer.enabled,
     remaining,
-    toggle: (enabled: boolean) => update({ routineId, enabled, endsAt: null }),
+    toggle: (enabled: boolean) => {
+      saveUiState('timerEnabled', String(enabled))
+      update({ routineId, enabled, endsAt: null })
+    },
     start: (seconds: number) => {
       if (!timer.enabled) return
       const current = Date.now()

@@ -73,7 +73,7 @@ No hay cuenta, backend, analítica ni sincronización. Compartir el enlace no co
 - Crear un ejercicio desde una rutina lo añade al catálogo y a esa rutina en una sola acción.
 - Escribir 100 lb muestra 45.36 kg; escribir 20 kg muestra 44.09 lb. Vaciar el campo deja el ejercicio sin peso, y el peso no altera el porcentaje completado.
 - Una nota aparece bajo el título sin afectar el progreso; notas y descansos sobreviven al respaldo y los respaldos anteriores siguen importándose.
-- El temporizador apagado no arranca; encendido usa el descanso del ejercicio o 90 s, puede omitirse y se restaura tras una recarga.
+- El temporizador apagado no arranca; encendido usa el descanso del ejercicio o 90 s y puede omitirse. Su interruptor conserva la elección al cambiar de rutina, pestaña o recargar; una cuenta activa se restaura al volver a su rutina.
 - Eliminar un ejercicio referenciado no deja entradas huérfanas.
 - Exportar e importar en un navegador limpio reconstruye catálogo, orden, rutinas, marcas y tema.
 - Una instalación cargada una vez abre sin conexión en la ruta del repositorio y puede marcar series.
