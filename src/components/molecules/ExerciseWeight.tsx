@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { useAppStore } from '../../store'
 import { KG_PER_LB, MAX_WEIGHT_KG } from '../../config'
 import { ToggleSwitch } from '../atoms/ToggleSwitch'
+import { readWeightUnit, saveUiState } from '../../uiState'
 
 const Shell = styled.div`margin-top:.85rem; padding-top:.55rem; border-top:1px solid ${({ theme }) => theme.border};`
 const Disclosure = styled.button`
@@ -22,7 +23,7 @@ export function ExerciseWeight({ entryId, exerciseName }: { entryId: string; exe
   const weight = useAppStore(state => state.weightsKg[entryId] ?? null)
   const setWeightKg = useAppStore(state => state.setWeightKg)
   const [expanded, setExpanded] = useState(false)
-  const [unit, setUnit] = useState<'kg' | 'lb'>('kg')
+  const [unit, setUnit] = useState<'kg' | 'lb'>(readWeightUnit)
   const [editing, setEditing] = useState<string | null>(null)
   const change = (value: string) => {
     setEditing(value)
@@ -46,7 +47,12 @@ export function ExerciseWeight({ entryId, exerciseName }: { entryId: string; exe
           onChange={event => change(event.target.value)} onBlur={() => setEditing(null)} />
         <ToggleSwitch left="kg" right="lb" checked={unit === 'lb'}
           label={`Unidad de peso de ${exerciseName}`}
-          onChange={isLb => { setUnit(isLb ? 'lb' : 'kg'); setEditing(null) }} />
+          onChange={isLb => {
+            const next = isLb ? 'lb' : 'kg'
+            setUnit(next)
+            saveUiState('weightUnit', next)
+            setEditing(null)
+          }} />
         {weight !== null && <Converted>≈ {display(unit === 'kg' ? weight / KG_PER_LB : weight)} {unit === 'kg' ? 'lb' : 'kg'}</Converted>}
       </Fields>}
     </Shell>

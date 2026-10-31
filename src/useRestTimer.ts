@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react'
 import { TIMER_FINISHED_DISPLAY_MS, TIMER_TICK_MS } from './config'
-import { readUiState, saveUiState } from './uiState'
+import { readTimerEnabled, readUiState, saveUiState } from './uiState'
 
 type TimerState = { routineId: string; enabled: boolean; endsAt: number | null }
 
 const initialState = (routineId: string): TimerState => {
-  const preference = readUiState('timerEnabled')
+  const enabled = readTimerEnabled()
   try {
     const saved = JSON.parse(readUiState('timer') ?? 'null') as Partial<TimerState> | null
-    const enabled = preference === 'true' ? true : preference === 'false' ? false : saved?.enabled === true
     if (saved?.routineId === routineId && typeof saved.enabled === 'boolean' &&
         (saved.endsAt === null || (typeof saved.endsAt === 'number' && Number.isFinite(saved.endsAt)))) {
       return { routineId, enabled,
@@ -16,7 +15,7 @@ const initialState = (routineId: string): TimerState => {
     }
     return { routineId, enabled, endsAt: null }
   } catch { /* Ignore an invalid saved countdown. */ }
-  return { routineId, enabled: preference === 'true', endsAt: null }
+  return { routineId, enabled, endsAt: null }
 }
 
 export function useRestTimer(routineId: string) {

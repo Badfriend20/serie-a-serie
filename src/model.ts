@@ -14,6 +14,19 @@ export type AppData = {
   mode: ThemeMode
   accent: Accent
 }
+export type BackupSettings = { timerEnabled: boolean; weightUnit: 'kg' | 'lb' }
+export type ParsedBackup = { version: 1 | 2; data: AppData; settings: BackupSettings | null }
+
+export function createBackup(data: AppData, settings: BackupSettings) {
+  return { version: 2 as const, data, settings }
+}
+
+export function prepareImport(data: AppData, current: AppData, keepCurrent: boolean): AppData {
+  if (!keepCurrent) return data
+  const entryIds = new Set(data.routines.flatMap(routine => routine.entries.map(entry => entry.id)))
+  const retainedWeights = Object.fromEntries(Object.entries(current.weightsKg).filter(([id]) => entryIds.has(id)))
+  return { ...data, weightsKg: { ...data.weightsKg, ...retainedWeights }, mode: current.mode, accent: current.accent }
+}
 
 export const emptyData: AppData = {
   exercises: [], routines: [], completed: {}, weightsKg: {}, mode: 'system', accent: 'coral'
@@ -42,12 +55,21 @@ export function migrateWeights(weights: unknown): AppData['weightsKg'] {
   return result
 }
 
-export function parseBackup(input: unknown): AppData {
-  if (!isRecord(input) || input.version !== 1 || !isRecord(input.data)) {
+export function parseBackup(input: unknown): ParsedBackup {
+  if (!isRecord(input) || (input.version !== 1 && input.version !== 2) || !isRecord(input.data)) {
     throw new Error('El archivo no tiene el formato de respaldo compatible.')
+  }
+  let settings: BackupSettings | null = null
+  if (input.version === 2) {
+    if (!isRecord(input.settings) || typeof input.settings.timerEnabled !== 'boolean' ||
+        (input.settings.weightUnit !== 'kg' && input.settings.weightUnit !== 'lb')) {
+      throw new Error('Las preferencias del respaldo son inválidas.')
+    }
+    settings = { timerEnabled: input.settings.timerEnabled, weightUnit: input.settings.weightUnit }
   }
   const data = input.data
   if (!Array.isArray(data.exercises) || !Array.isArray(data.routines) || !isRecord(data.completed) ||
+      (input.version === 2 && !isRecord(data.weightsKg)) ||
       !['system', 'light', 'dark'].includes(String(data.mode)) ||
       !['coral', 'mint', 'violet'].includes(String(data.accent)) ||
       data.exercises.length > MAX_EXERCISES || data.routines.length > MAX_ROUTINES) {
@@ -108,5 +130,6 @@ export function parseBackup(input: unknown): AppData {
     const latest = Array.isArray(value) ? [...value].reverse().find(validWeight) : value
     if (validWeight(latest)) weightsKg[key] = latest
   }
-  return { exercises, routines, completed, weightsKg, mode: data.mode as ThemeMode, accent: data.accent as Accent }
+  return { version: input.version, settings,
+    data: { exercises, routines, completed, weightsKg, mode: data.mode as ThemeMode, accent: data.accent as Accent } }
 }

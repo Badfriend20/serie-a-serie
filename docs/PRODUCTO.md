@@ -48,10 +48,10 @@ Tema: sistema, claro u oscuro; acento coral, menta o violeta. El fondo de toda l
 - React 19 + TypeScript + Vite + styled-components + Zustand.
 - Atomic design dentro de `components/{atoms,molecules,organisms,layout}`; `pages` aparte. Sin carpetas `features`.
 - Un componente exportado por archivo de interfaz y una sola salida JSX por componente. Las variaciones se expresan con props y composición. Las instancias internas de `styled` viven junto al componente, sin exportarse como componentes públicos.
-- Zustand guarda catálogo, rutinas, marcas, pesos y preferencias. Las tarjetas y controles leen selectores y acciones directamente; las páginas pasan solamente identificadores estructurales.
+- Zustand guarda catálogo, rutinas, marcas, pesos, tema y acento; `uiState.ts` conserva temporizador, unidad preferida y navegación. Las tarjetas y controles leen selectores y acciones directamente; las páginas pasan solamente identificadores estructurales.
 - Los colores, radios, espacios y sombras compartidos salen de `theme.ts` mediante `ThemeProvider`; límites y conversiones reutilizables salen de `config.ts`.
 - IDs UUID independientes del orden y del nombre. Una marca se indexa por ID de entrada y posición de serie.
-- `localStorage` para un volumen pequeño de datos, con versión persistida 2 y la misma clave. El respaldo JSON lleva `version: 1`; el campo `weightsKg` admite un número por entrada, está ausente en respaldos antiguos y también acepta arreglos de la versión con pesos por serie. Se valida antes de reemplazar el estado. No hay datos iniciales personales.
+- `localStorage` para un volumen pequeño de datos, con versión persistida 2 y la misma clave. El respaldo JSON lleva `version: 2` e incluye `data` (rutinas, marcas, pesos, modo y acento) y `settings` (temporizador y unidad de peso). Se aceptan respaldos versión 1, donde `weightsKg` puede estar ausente o contener arreglos por serie. Se valida y se muestra una vista previa antes de reemplazar el estado; la persona puede conservar pesos actuales de entradas coincidentes y apariencia actual. Los respaldos antiguos no pueden recuperar valores que nunca incluyeron. No hay datos iniciales personales.
 - Sin router: las secciones son pestañas dentro de una página, lo que evita rutas profundas y reglas especiales de Pages.
 
 ## PWA y publicación
@@ -75,7 +75,7 @@ No hay cuenta, backend, analítica ni sincronización. Compartir el enlace no co
 - Una nota aparece bajo el título sin afectar el progreso; notas y descansos sobreviven al respaldo y los respaldos anteriores siguen importándose.
 - El temporizador apagado no arranca; encendido usa el descanso del ejercicio o 90 s y puede omitirse. Su interruptor conserva la elección al cambiar de rutina, pestaña o recargar; una cuenta activa se restaura al volver a su rutina.
 - Eliminar un ejercicio referenciado no deja entradas huérfanas.
-- Exportar e importar en un navegador limpio reconstruye catálogo, orden, rutinas, marcas y tema.
+- Exportar e importar en un navegador limpio reconstruye catálogo, orden, rutinas, marcas, pesos, tema, acento, preferencia de temporizador y unidad de peso.
 - Una instalación cargada una vez abre sin conexión en la ruta del repositorio y puede marcar series.
 - El build de Actions usa una ruta base que coincide con el nombre real del repositorio.
 
